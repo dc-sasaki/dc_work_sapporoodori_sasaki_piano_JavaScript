@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ルーレット</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="./jquery-3.6.0.min.js"></script>
+
+   
+<script>
+  let musical_scales = [
+    { musical_scale: "C", piano_sound: "./piano/pianoC.mp3" },
+    { musical_scale: "D", piano_sound: "./piano/pianoD.mp3" },
+    { musical_scale: "E", piano_sound: "./piano/pianoE.mp3" },
+    { musical_scale: "F", piano_sound: "./piano/pianoF.mp3" },
+    { musical_scale: "G", piano_sound: "./piano/pianoG.mp3" },
+    { musical_scale: "A", piano_sound: "./piano/pianoA.mp3" },
+    { musical_scale: "B", piano_sound: "./piano/pianoB.mp3" },
+  ];
+
+  let clear_display;//表示のセット
+  let claer_sound_all = [];
+  let status = true; //演奏中かどうか判断
+ 
+ 
+
+   //自動演奏する曲を選択する
+   function select_music() {
+    let rand = Math.floor(Math.random() * 2);
+    if (rand >= 0.5) {
+      $("#auto-music-display").text('自動演奏中です：キラキラ星');
+      automatic_music_kirakira();
+    } else {
+      $("#auto-music-display").text('自動演奏中です：チューリップ');
+      automatic_music_tulip();
+    }
+  }
+
+  //きらきら星
+  function automatic_music_kirakira() {
+    const sheet_music = 'ド(0.5秒)休符(0.5秒)ド(0.5秒)休符(0.5秒)ソ(0.5秒)休符(0.5秒)ソ(0.5秒)休符(0.5秒)ラ(0.5秒)休符(0.5秒)ラ(0.5秒)休符(0.5秒)ソ(2秒)ファ(0.5秒)休符(0.5秒)ファ(0.5秒)休符(0.5秒)ミ(0.5秒)休符(0.5秒)ミ(0.5秒)休符(0.5秒)レ(0.5秒)休符(0.5秒)レ(0.5秒)休符(0.5秒)ド(2秒)ソ(0.5秒)休符(0.5秒)ソ(0.5秒)休符(0.5秒)ファ(0.5秒)休符(0.5秒)ファ(0.5秒)休符(0.5秒)ミ(0.5秒)休符(0.5秒)ミ(0.5秒)休符(0.5秒)レ(2秒)ソ(0.5秒)休符(0.5秒)ソ(0.5秒)休符(0.5秒)ファ(0.5秒)休符(0.5秒)ファ(0.5秒)休符(0.5秒)ミ(0.5秒)休符(0.5秒)ミ(0.5秒)休符(0.5秒)レ(2秒)ド(0.5秒)休符(0.5秒)ド(0.5秒)休符(0.5秒)ソ(0.5秒)休符(0.5秒)ソ(0.5秒)休符(0.5秒)ラ(0.5秒)休符(0.5秒)ラ(0.5秒)休符(0.5秒)ソ(2秒)ファ(0.5秒)休符(0.5秒)ファ(0.5秒)休符(0.5秒)ミ(0.5秒)休符(0.5秒)ミ(0.5秒)休符(0.5秒)レ(0.5秒)休符(0.5秒)レ(0.5秒)休符(0.5秒)ド(4秒)';
+    automatic_music(sheet_music);
+  }
+
+  //チューリップ
+  function automatic_music_tulip() {
+    let sheet_music = "ド(0.5秒)レ(0.5秒)ミ(1秒)ド(0.5秒)レ(0.5秒)ミ(1秒)ソ(0.5秒)ミ(0.5秒)レ(0.5秒)ド(0.5秒)レ(0.5秒)ミ(0.5秒)レ(1秒)ド(0.5秒)レ(0.5秒)ミ(1秒)ド(0.5秒)レ(0.5秒)ミ(1秒)ソ(0.5秒)ミ(0.5秒)レ(0.5秒)ド(0.5秒)レ(0.5秒)ミ(0.5秒)ド(1秒)ソ(0.25秒)休符(0.25秒)ソ(0.25秒)休符(0.25秒)ミ(0.25秒)休符(0.25秒)ソ(0.25秒)休符(0.25秒)ラ(0.25秒)休符(0.25秒)ラ(0.25秒)休符(0.25秒)ソ(1秒)ミ(0.25秒)休符(0.25秒)ミ(0.25秒)休符(0.25秒)レ(0.25秒)休符(0.25秒)レ(0.25秒)休符(0.25秒)ド(4秒)";
+    automatic_music(sheet_music);
+   
+    
+  }
+
+  //自動演奏
+  function automatic_music(sheet_music) {
+    status = true;
+
+    if('自動演奏'=== $("#auto-music").text()){
+      music_time(sheet_music);
+    }else{
+      stop_playing();
+    }
+
+    var music_ary = music_convert_to_Array(sheet_music);
+    var myPromise = Promise.resolve();
+
+    //楽譜を読み込んで自動演奏
+    for (var i = 0; i < music_ary.length; i++) {
+      myPromise = myPromise.then(
+        pressed_sound_time.bind(
+          this,
+          music_ary[i]["musical_scale"],
+          music_ary[i]["time"]
+        )
+      );
+    }
+  }
+
+  //演奏中止処理
+  async function stop_playing() {
+    status = false;
+    $("#auto-music").text('自動演奏');
+    $("#auto-music-display").text(' ');
+    $(".sound").prop("disabled", false);
+  } 
+
+
+  //演奏時間の計測＋自動演奏ボタンの操作
+  function music_time(sheet_music){
+    $("#auto-music").text('演奏中止');
+    $(".sound").prop("disabled", true);
+
+    sheet_music_times = sheet_music
+      .replace(/\(/g, "")
+      .replace(/\)/g, " ")
+      .replace(/秒/g, "")
+      .replace(/[ドレミファソラシド]/g, "")
+      .replace(/[休符]/g, "");
+
+      const times = sheet_music_times.split(" ");
+      let sum_time = 0;
+      for(let i=0; i<times.length; i++){
+        sum_time += parseFloat(times);
+      }
+      console.log(sheet_music_times);
+      console.log(times);
+      console.log(sum_time);
+      console.log(sum_time**1.04);
+     
+      setTimeout(function () {
+        $(".sound").prop("disabled", false);
+        $("#auto-music").text('自動演奏');
+        $("#auto-music-display").text(' ');
+      }, (sum_time**1.04) * 1000);
+  }
+
+  function music_convert_to_Array(sheet_music) {
+    //いらない要素を排除する.変換する
+    sheet_music_musical_scales = sheet_music
+      .replace(/\(/g, "")
+      .replace(/\)/g, " ")
+      .replace(/秒/g, "")
+      .replace(/[0-9.]/g, "")
+      .replace(/[休符]/g, "X")
+      .replace(/ド/g, "C")
+      .replace(/レ/g, "D")
+      .replace(/ミ/g, "E")
+      .replace(/ファ/g, "F")
+      .replace(/ソ/g, "G")
+      .replace(/ラ/g, "A")
+      .replace(/シ/g, "B");
+    sheet_music_times = sheet_music
+      .replace(/\(/g, "")
+      .replace(/\)/g, " ")
+      .replace(/秒/g, "")
+      .replace(/[ドレミファソラシド]/g, "")
+      .replace(/[休符]/g, "");
+
+      sheet_music_musical_scales = 'XX '.concat(sheet_music_musical_scales);
+      sheet_music_times = '1 '.concat(sheet_music_times);
+
+    //配列に格納
+    const musical_scales = sheet_music_musical_scales.split(" ");
+    const times = sheet_music_times.split(" ");
+
+    //二次元配列に格納
+    var datas = [];
+    for (let i = 0; i < times.length; i++) {
+      var data = {};
+      data.musical_scale = musical_scales[i];
+      data.time = times[i];
+      datas.push(data);
+    }
+
+    return datas;
+  }
+
+  //選択された音を鳴らす+時間
+  function pressed_sound_time(value, time) {
+    display(value);
+    //音源が4秒のため最大4秒
+    time = time >= 4 ? 4 : time ;
+    return new Promise(function (resolve, reject) {
+      if(true === status){
+      let ad;
+      $.each(musical_scales, function (i, v) {
+        if (v.musical_scale === value) {
+          ad = new Audio(v.piano_sound);
+          ad.play();
+          fadeout(ad, time);
+        }
+      });
+      setTimeout(function () {
+        resolve();
+      }, time * 1000);
+    }
+    });
+  }
+
+   //選択された音を表示
+   function display(value) {
+    $.each(musical_scales, function (i, v) {
+        if (v.musical_scale === value) {
+          $("#sound-display").text($("#" + value).text());
+        }
+      });
+   
+    clearTimeout(clear_display);
+    clear_display = setTimeout(function () {
+      $("#sound-display").text('　');
+    }, 1000);
+  }
+
+   //音がきれいに終わるようにする
+   function fadeout(ad, min) {
+    var fade_time = min * 1000; //1000;//(1秒　=1000)
+    ad.volume = 1;
+    var end_func = setInterval(function () {
+      ad.volume = ad.volume - 1.0 / 100 < 0 ? 0 : ad.volume - 1.0 / 100;
+      if (ad.volume <= 1.0 / 100) {
+        ad.volume = 0;
+        ad.pause();
+        clearInterval();
+      }
+    }, (fade_time * 1.0) / 100);
+  }
+
+  //html読み込み後実行
+  $(document).ready(function () {
+    $("#auto-music").click(function () {select_music();});
+    // $("#kirakira").click(automatic_music_kirakira);
+    // $("#tulip").click(automatic_music_tulip);
+    //soundsのボタンが押されたら実行
+    $.each(musical_scales, function (i, v) {
+      $("#" + v.musical_scale).click(function () {
+        status = true;
+        pressed_sound_time(v.musical_scale, 1);
+      });
+    });
+  });
+</script>
+
+  </head>
+
+  <body>
+    <div id="main">
+
+        <div id="auto-music-display"></div>
+        <div id="sound-display">　</div>
+
+
+        <div id="sounds">
+            <button class="sound" id="C" value="ド" type="button">ド</button>
+            <button class="sound" id="D" value="レ" type="button">レ</button>
+            <button class="sound" id="E" value="ミ" type="button">ミ</button>
+            <button class="sound" id="F" value="ファ" type="button"> ファ</button>
+            <button class="sound" id="G" value="ソ" type="button">ソ</button>
+            <button class="sound" id="A" value="ラ" type="button">ラ</button>
+            <button class="sound" id="B" value="シ" type="button">シ</button>
+        </div>
+
+        <div class="auto-musics">
+          <!-- <button id="kirakira" type="button">きらきら星</button> -->
+          <!-- <button id="tulip" type="button">チューリップ</button> -->
+          <button id="auto-music" type="button">自動演奏</button>
+        </div>
+
+  </body>
+</html>

@@ -1,0 +1,33 @@
+body{
+    text-align: center;
+    position: relative
+}
+
+#auto-music-display {
+    position: absolute;
+    z-index: 4;
+    
+}
+
+#sound-display {
+    font-size: 30px;
+    color: goldenrod;
+    border: 1px solid;
+    border-color: darkgoldenrod;
+    padding: 10px 30px;
+    margin-bottom: 20px;
+    background-color: bisque;
+}
+
+#sounds { 
+    margin-bottom: 30px;
+}
+
+.sound {
+    width: 80px;
+    height: 80px;
+}
+
+#auto-music {
+    padding: 10px 30px;
+}
